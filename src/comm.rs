@@ -13,12 +13,6 @@ pub struct Connection {
     buffer: BytesMut,
 }
 
-pub enum Action {
-    Upload = 0,
-    Download = 1,
-    SelectIndex = 3,
-}
-
 impl Connection {
     pub fn new(socket: TcpStream) -> Connection {
         Connection {

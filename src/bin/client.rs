@@ -11,10 +11,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Write some data.
     let mut con = Connection::new(stream);
-    let tf = TxtFrame::Frame {
+    let tf = TxtFrame {
         action: 0,
         file_name: "file_1".to_string(),
-        file_body: "body1".to_string(),
+        file_body: b"body1".to_vec(),
     };
     let _ = con.write_frame(&tf).await;
     Ok(())
