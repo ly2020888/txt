@@ -6,7 +6,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 use tokio::net::TcpStream;
 
 pub use frame::{TxtError, TxtFrame};
-const TCP_BUF_SIZE: usize = 4 * 1024 * 1024;
+const TCP_BUF_SIZE: usize = 16 * 1024 * 1024;
 
 pub struct Connection {
     stream: BufWriter<TcpStream>,
@@ -43,13 +43,15 @@ impl Connection {
             Ok(_) => {
                 let len = src.position() as usize;
                 src.set_position(0);
-                let tf: TxtFrame = frame::TxtFrame::parse(&mut src)
-                    .map_err(|e| {
-                        return e;
-                    })
-                    .unwrap();
-                self.buffer.advance(len);
-                Ok(Some(tf))
+                let tf = frame::TxtFrame::parse(&mut src).map_err(|e| {
+                    println!("解析数据帧出错:{:?}", e);
+                });
+                if let Ok(tf) = tf {
+                    self.buffer.advance(len);
+                    Ok(Some(tf))
+                } else {
+                    Ok(None)
+                }
             }
             Err(TxtError::Incomplete) => Ok(None),
             Err(e) => Err(e),

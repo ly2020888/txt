@@ -8,8 +8,7 @@ use tokio::fs;
 pub const PATH: &str = "downloads/";
 
 lazy_static! {
-    static ref RE: Regex =
-        Regex::new(r"^.+[\.txt]|[\.md]|[\.zip]|[\.pdf]|[\.epub]|[\.mobi]|[\.prc]").unwrap();
+    static ref RE: Regex = Regex::new(r"^[.+\.[zip]|[md]|[txt]|[pdf]|[epub]]|[index]").unwrap();
 }
 
 pub fn get_catalog(path: &str) -> Result<String, io::Error> {
@@ -32,6 +31,21 @@ pub async fn catalog_frame(catalog: String) -> TxtFrame {
         file_body: Bytes::from(catalog).to_vec(),
     }
 }
+pub async fn show_catalog() {
+    let mut tf: TxtFrame = "index".into();
+    let _ = tf
+        .read_file()
+        .await
+        .map_err(|err| {
+            println!("读取目录出错:{:?}", err);
+        })
+        .map(|_| {
+            println!(
+                "取得目录: \n{}",
+                std::str::from_utf8(&tf.file_body).unwrap()
+            );
+        });
+}
 
 impl From<&str> for TxtFrame {
     fn from(value: &str) -> Self {
@@ -44,6 +58,16 @@ impl From<&str> for TxtFrame {
     }
 }
 
+impl From<&String> for TxtFrame {
+    fn from(value: &String) -> Self {
+        let tf = TxtFrame {
+            action: Action::Empty,
+            file_name: value.to_string(),
+            file_body: b"".to_vec(),
+        };
+        tf
+    }
+}
 impl TxtFrame {
     pub async fn read_file(&mut self) -> Result<(), TxtError> {
         if RE.is_match(&self.file_name) {
