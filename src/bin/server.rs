@@ -76,10 +76,10 @@ async fn action(con: &mut Connection, frame: TxtFrame) {
         }
         Action::Select => {
             println!("收到目录加载请求");
-            let mut index: TxtFrame = "index".into();
-            let content: bytes::Bytes = txt_files::get_catalog(txt_files::PATH)
-                .map_or(bytes::Bytes::from(""), |ok| bytes::Bytes::from(ok));
-            index.file_body = content.to_vec();
+
+            let content = txt_files::get_catalog(txt_files::PATH)
+                .map_or(String::from(""), |ok| String::from(ok));
+            let index = txt_files::catalog_frame(content).await;
             let _ = con.write_frame(&index).await.map_err(|e| {
                 println!("服务器写入文件失败：{:?}", e);
             });
