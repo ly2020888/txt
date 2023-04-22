@@ -5,11 +5,18 @@ use std::{fmt::Display, io::Cursor};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TxtFrame {
-    pub action: i32,
+    pub action: Action,
     pub file_name: String,
     pub file_body: Vec<u8>,
 }
 
+#[derive(Clone, Serialize, Debug, Deserialize)]
+pub enum Action {
+    Empty = 0,
+    Upload = 1,
+    Download = 2,
+    Select = 3,
+}
 // "start with '+' ,end with '\r''\n'"
 impl TxtFrame {
     pub fn check(src: &mut Cursor<&[u8]>) -> Result<(), TxtError> {
@@ -76,7 +83,15 @@ impl Display for TxtFrame {
         Ok(())
     }
 }
-
+impl Default for TxtFrame {
+    fn default() -> Self {
+        TxtFrame {
+            action: Action::Empty,
+            file_name: "".to_string(),
+            file_body: vec![],
+        }
+    }
+}
 #[derive(Debug)]
 pub enum TxtError {
     /// Not enough data is available to parse a message
@@ -94,6 +109,12 @@ impl From<std::io::Error> for TxtError {
     }
 }
 
+impl From<TxtError> for String {
+    fn from(value: TxtError) -> Self {
+        format!("错误：{:?}", value)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -101,7 +122,7 @@ mod test {
     #[test]
     fn test_serialize() {
         let one_frame = TxtFrame {
-            action: 0,
+            action: Action::Empty,
             file_name: "file1".to_string(),
             file_body: b"+asd56qw4e12q3w21a3s12d3ad\r\n".to_vec(),
         };
@@ -112,7 +133,7 @@ mod test {
     #[test]
     fn test_unserialize() {
         let one_frame = TxtFrame {
-            action: 0,
+            action: Action::Empty,
             file_name: "file1".to_string(),
             file_body: b"+asd56qw4e12q3w21a3s12d3ad\r\n".to_vec(),
         };

@@ -1,11 +1,11 @@
-use crate::comm::frame::{TxtError, TxtFrame};
+use crate::comm::frame::{Action, TxtError, TxtFrame};
 use bytes::Bytes;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{fs::read_dir, io};
 use tokio::fs;
 
-const PATH: &str = "downloads/";
+pub const PATH: &str = "downloads/";
 
 lazy_static! {
     static ref RE: Regex =
@@ -27,7 +27,7 @@ pub fn get_catalog(path: &str) -> Result<String, io::Error> {
 
 pub async fn catalog_frame(catalog: String) -> TxtFrame {
     TxtFrame {
-        action: 0,
+        action: Action::Empty,
         file_name: "index".to_string(),
         file_body: Bytes::from(catalog).to_vec(),
     }
@@ -36,7 +36,7 @@ pub async fn catalog_frame(catalog: String) -> TxtFrame {
 impl From<&str> for TxtFrame {
     fn from(value: &str) -> Self {
         let tf = TxtFrame {
-            action: 0,
+            action: Action::Empty,
             file_name: value.to_string(),
             file_body: b"".to_vec(),
         };

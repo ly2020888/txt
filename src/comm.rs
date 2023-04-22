@@ -1,6 +1,6 @@
 pub mod frame;
 
-use bytes::BytesMut;
+use bytes::{Buf, BytesMut};
 use std::io::Cursor;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 use tokio::net::TcpStream;
@@ -41,12 +41,14 @@ impl Connection {
 
         match frame::TxtFrame::check(&mut src) {
             Ok(_) => {
+                let len = src.position() as usize;
                 src.set_position(0);
                 let tf: TxtFrame = frame::TxtFrame::parse(&mut src)
                     .map_err(|e| {
                         return e;
                     })
                     .unwrap();
+                self.buffer.advance(len);
                 Ok(Some(tf))
             }
             Err(TxtError::Incomplete) => Ok(None),
